@@ -20,24 +20,45 @@ passport.use(new LocalStrategy({
         }).catch(done);
 }));
 
-// OAuth2 Strategy
-// const server = 'http://localhost:8000';
-// const oauth2_config = {
-//     tokenURL: server + '/api/oauth2/token',
-//     authorizationURL: server + '/api/oauth2/authorize',
-//     clientID: '123',
-//     clientSecret: '123',
-//     callbackURL: server + '/api/oauth2/callback',
-//     scope: ['all', 'test']
-// };
-// passport.use(
-//     'oauth2',
-//     new OAuth2Strategy(
-//         oauth2_config,
-//         function (req, accessToken, refreshToken, params, profile, done) {
-//             // do something with the profile
-//             console.log({accessToken, refreshToken, params, profile});
-//             done(null, profile);
-//         }
-//     )
-// );
+const oauth2orize = require('oauth2orize');
+global.oauthServer = oauth2orize.createServer();
+const {AccessToken, Application, GrantCode} = require('../models/oauth2');
+
+oauthServer.grant(oauth2orize.grant.code(function(application, redirectURI, user, ares, done) {
+    console.log({application, redirectURI, user, ares});
+    const grant = new GrantCode({
+        application: application,
+        // user: user,
+    });
+    grant.save(function(error) {
+        done(error ? error : null, grant.code);
+    });
+}));
+oauthServer.exchange(oauth2orize.exchange.code({
+    userProperty: 'app'
+}, function(application, code, redirectURI, done) {
+    console.log({code, redirectURI});
+    GrantCode.findOne({ code }, function(error, grant) {
+        console.log(code);
+        if (grant && grant.active /*&&grant.application == application._id*/) {
+            const token = new AccessToken({
+                application: grant.application,
+                user: grant.user,
+                grant: grant
+            });
+            token.save(function(error) {
+                done(error, error ? null : token.token, null, error ? null : { token_type: 'standard' });
+            });
+        } else {
+            done(error, false);
+        }
+    });
+}));
+oauthServer.serializeClient(function(application, done) {
+    done(null, application.id);
+});
+oauthServer.deserializeClient(function(id, done) {
+    Application.findById(id, function(error, application) {
+        done(error, error ? null : application);
+    });
+});
