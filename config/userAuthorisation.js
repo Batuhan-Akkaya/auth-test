@@ -20,6 +20,11 @@ module.exports = function (app) {
         if (req.payload.role === 'admin')
             return true;
     });
+    userAuthorisation.use('access_profile', function (req) {
+        console.log(req.payload.role);
+        if (req.payload.role === 'user')
+            return true;
+    });
 
     return userAuthorisation
 };

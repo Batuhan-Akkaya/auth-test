@@ -16,14 +16,15 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({ secret: 'passport-test', cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false }));
 
-mongoose.connect('mongodb://localhost/passport-test', { useNewUrlParser: true });
+mongoose.connect('mongodb://localhost/passport-test', { useNewUrlParser: true, useFindAndModify: false });
 
+require('./models/project');
 require('./models/user');
 require('./config/passport');
 const userAuthorisation = require('./config/userAuthorisation')(app);
 app.use(require('./routes'));
 
-app.get('/admin', [auth.required, userAuthorisation.can('access_private')], (req, res) => res.send('test') );
+// app.get('/admin', [auth.required, userAuthorisation.can('access_private')], (req, res) => res.send('test') );
 
 
 

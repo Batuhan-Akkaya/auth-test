@@ -1,24 +1,24 @@
 const mongoose = require('mongoose');
-const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const { Schema } = mongoose;
-
-const UsersSchema = new Schema({
+const UsersSchema = new mongoose.Schema({
     email: String,
     role: String,
-    hash: String,
-    salt: String,
+    password: String,
+    firstName: String,
+    lastName: String,
+    company: String,
+    termsOfConditions: [String],
+    projects: [{type: mongoose.Schema.Types.ObjectId, ref: 'Projects'}]
 });
 
 UsersSchema.methods.setPassword = function(password) {
-    this.salt = crypto.randomBytes(16).toString('hex');
-    this.hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
+    this.password = bcrypt.hashSync(password, 8);
 };
 
 UsersSchema.methods.validatePassword = function(password) {
-    const hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
-    return this.hash === hash;
+    return bcrypt.compareSync(password, this.password);
 };
 
 UsersSchema.methods.generateJWT = function() {
@@ -42,4 +42,4 @@ UsersSchema.methods.toAuthJSON = function() {
     };
 };
 
-mongoose.model('Users', UsersSchema);
+module.exports = mongoose.model('Users', UsersSchema);

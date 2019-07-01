@@ -4,16 +4,15 @@ const router = require('express').Router();
 const auth = require('../auth');
 const Users = mongoose.model('Users');
 
-//POST new user route (optional, everyone has access)
-router.post('/', auth.optional, (req, res, next) => {
-    const { body: { email, password, role } } = req;
+router.post('/register', auth.optional, (req, res, next) => {
+    const { body: { email, password, role, company, firstName, lastName } } = req;
 
     if(!email)
         return next({status: 422, errors: {email: 'is required'}});
     if(!password)
         return next({status: 422, errors: {password: 'is required'}});
 
-    const user = {email, password, role};
+    const user = {email, password, role, company, firstName, lastName, termsOfConditions: ['01/06/2019'], projects: []};
     const finalUser = new Users(user);
     finalUser.setPassword(user.password);
 
@@ -21,7 +20,6 @@ router.post('/', auth.optional, (req, res, next) => {
         .then(() => res.json({ user: finalUser.toAuthJSON() }));
 });
 
-//POST login route (optional, everyone has access)
 router.post('/login', auth.optional, (req, res, next) => {
     const { body: { email, password } } = req;
 
@@ -43,7 +41,6 @@ router.post('/login', auth.optional, (req, res, next) => {
     })(req, res, next);
 });
 
-//GET current route (required, only authenticated users have access)
 router.get('/get', auth.required, (req, res, next) => {
     const { payload: { id } } = req;
 
