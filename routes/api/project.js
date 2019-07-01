@@ -5,9 +5,7 @@ const User = require('../../models/user');
 const Project = mongoose.model('Project');
 
 router.post('/create', auth.required, (req, res, next) => {
-    console.log('asd');
     const {name, type} = req.body;
-    console.log('zzz ' +  req.payload);
     const userId = req.payload.id;
 
     const project = new Project({name, type});
