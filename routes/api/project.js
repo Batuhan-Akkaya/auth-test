@@ -3,6 +3,7 @@ const router = require('express').Router();
 const auth = require('../auth');
 const User = require('../../models/user');
 const Project = mongoose.model('Project');
+const passport = require('passport');
 
 router.post('/create', auth.required, (req, res, next) => {
     const {name, type} = req.body;
@@ -16,6 +17,10 @@ router.post('/create', auth.required, (req, res, next) => {
             return res.json({created: 1, data});
         });
     });
+});
+
+router.get('/private-test', passport.authenticate('bearer', { session: false }), (req, res) => {
+    res.send(req.user);
 });
 
 

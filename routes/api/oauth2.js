@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const {Application} = require('../../models/oauth2');
 const request = require('request');
+// const auth = require('../auth');
 
 router.get('/authorize', [
     // auth.required,
@@ -30,8 +31,8 @@ router.get('/authorize', [
 router.post('/authorize/decision', oauthServer.decision());
 
 router.get('/getToken', (req, res, next) => {
-    const {code} = req.query;
-    request.post({url: 'http://localhost:8000/api/oauth2/exchange', form: {grant_type: 'authorization_code', code}}, function (err, response, body) {
+    const {code, user} = req.query;
+    request.post({url: 'http://localhost:8000/api/oauth2/exchange', form: {grant_type: 'authorization_code', code, user}}, function (err, response, body) {
         if (err) return next(err);
         res.send(JSON.parse(body));
     })

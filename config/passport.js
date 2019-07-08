@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
-// const OAuth2Strategy = require('passport-oauth2').Strategy;
 
 const Users = mongoose.model('Users');
 
@@ -20,6 +19,8 @@ passport.use(new LocalStrategy({
         }).catch(done);
 }));
 
+
+// Oauth2 Strategy
 const oauth2orize = require('oauth2orize');
 global.oauthServer = oauth2orize.createServer();
 const {AccessToken, Application, GrantCode} = require('../models/oauth2');
@@ -28,7 +29,7 @@ oauthServer.grant(oauth2orize.grant.code(function(application, redirectURI, user
     console.log({application, redirectURI, user, ares});
     const grant = new GrantCode({
         application: application,
-        // user: user,
+        user: user,
     });
     grant.save(function(error) {
         done(error ? error : null, grant.code);
@@ -36,14 +37,12 @@ oauthServer.grant(oauth2orize.grant.code(function(application, redirectURI, user
 }));
 oauthServer.exchange(oauth2orize.exchange.code({
     userProperty: 'app'
-}, function(application, code, redirectURI, done) {
-    console.log({code, redirectURI});
+}, function(application, code, redirectURI, body, done) {
     GrantCode.findOne({ code }, function(error, grant) {
-        console.log(code);
         if (grant && grant.active /*&&grant.application == application._id*/) {
             const token = new AccessToken({
                 application: grant.application,
-                user: grant.user,
+                user: body.user,
                 grant: grant
             });
             token.save(function(error) {
@@ -62,3 +61,16 @@ oauthServer.deserializeClient(function(id, done) {
         done(error, error ? null : application);
     });
 });
+
+// Bearer Strategy
+const BearerStrategy = require('passport-http-bearer').Strategy;
+
+passport.use('bearer', new BearerStrategy(
+    function(token, done) {
+        AccessToken.findOne({ token }, function (err, tokenData) {
+            if (err) { return done(err); }
+            if (!tokenData) { return done(null, false); }
+            return done(null, tokenData, { scope: tokenData.application.scope });
+        }).populate('application');
+    }
+));

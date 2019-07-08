@@ -11,7 +11,6 @@ const ApplicationSchema = new Schema({
 
 const GrantCodeSchema = new Schema({
     code: { type: String, unique: true, default: () => uid(24)},
-    user: { type: Schema.Types.ObjectId, ref: 'User' },
     application: { type: Schema.Types.ObjectId, ref: 'Application' },
     active: { type: Boolean, default: true }
 });

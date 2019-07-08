@@ -10,7 +10,18 @@ const UsersSchema = new mongoose.Schema({
     lastName: String,
     company: String,
     termsOfConditions: [String],
-    projects: [{type: mongoose.Schema.Types.ObjectId, ref: 'Projects'}]
+    projects: [{type: mongoose.Schema.Types.ObjectId, ref: 'Projects'}],
+    profileCompleteness: {
+        type: Number,
+        get: function (val) {
+            let point = 0;
+            if (this.email!="") point += 20;
+            if (this.firstName!="") point += 20;
+            if (this.firstName!="") point += 20;
+            if (this.company!="") point += 20;
+            return point;
+        }
+    }
 });
 
 UsersSchema.methods.setPassword = function(password) {
@@ -39,6 +50,7 @@ UsersSchema.methods.toAuthJSON = function() {
         email: this.email,
         role: this.role,
         token: this.generateJWT(),
+        profileCompleteness: this.profileCompleteness
     };
 };
 

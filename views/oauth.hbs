@@ -8,6 +8,7 @@
         <input type="hidden" name="scope" value="{{scope}}">
         <input type="hidden" name="client_id" value="{{application.oauth_id}}">
         <input type="hidden" name="redirect_uri" value="{{redirect_uri}}">
+        <input type="hidden" name="user" value="{{user}}">
         <h3>{{application.title}} needs access to:</h3>
         <ul>
             {{#each scope}}
